@@ -1,0 +1,73 @@
+{% extends 'notes/main.html' %} {% block content %}
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<div class="header-bar">
+    <div>
+        <h1>Hello {{request.user|title |truncatechars:9}}</h1>
+        <h3 style="margin:0">You have <i>{{count}}</i> note{{ count|pluralize:"s" }}</h3>
+    </div>
+
+    {% if request.user.is_authenticated %}
+    <a href="{% url 'logout' %}">Logout</a> {% else %}
+    <a href="{% url 'login' %}">Login</a> {% endif %}
+</div>
+
+
+<div id="search-add-wrapper">
+    <form method="GET" style="display: flex;">
+        <input type='text' name='search-area' placeholder="Search your note" value="{{search_input}}">
+        <input class="button" type="submit" value='Search' style="margin-left: 3px;">
+    </form>
+    {% if notes|length > 0 %}
+    <a id="add-link" href="{% url 'note-create' %}">&#x2b;</a>
+    {% endif %}
+</div>
+
+<div id="notelist" class="note-items-wrapper">
+    {% for note in notes %}
+    <div class="note-wrapper" data-position="{{note.pk}}">
+        <div class="note-title">
+            <div class="note-incomplete-icon"></div>
+            <a href="{% url 'note-update' note.id %}">{{note}}</a>
+        </div>
+        <div class="note-controls">
+            <a class="delete-link" href="{% url 'note-delete' note.id %}">&#215;</a>
+            <span class="handle">&nbsp;&#10247;</span>
+        </div>
+    </div>
+
+    {% empty %}
+    <div style="text-align: center; padding-bottom: 10px; line-height: 1em;">
+        <h3>No new notes are created.</h3>
+        <h3>Create a <a style="text-decoration: none; color: #e53935;" href="{% url 'note-create' %}">New note</a> ! </h3>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    var taskList = document.getElementById("tasklist");
+    var reorderForm = document.getElementById("reorderForm");
+    var positionInput = document.getElementById("positionInput");
+
+    let sortable = Sortable.create(taskList, {
+        handle: '.handle',
+        ghostClass: 'dropArea',
+        chosenClass: 'selectedTask',
+
+    });
+
+    function reordering() {
+        const rows = document.getElementsByClassName("note-wrapper");
+        let pos = [];
+        for (let row of rows) {
+            pos.push(row.dataset.position);
+        }
+        console.log(pos.join(","))
+        positionInput.value = pos.join(',');
+        reorderForm.submit();
+    }
+
+    document.ondrop = reordering
+</script>
+
+{% endblock content %}
